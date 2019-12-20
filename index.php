@@ -186,7 +186,7 @@ if( isset($_SESSION['user_id']) ){
                 "type": "function"
             }
         ]);
-        var criptoChirac = VoteContract.at('0xc93F934e28578BD89C19A008E4f5aC0dfa5Fc0a3');
+        var criptoChirac = VoteContract.at('0x7B346E517427f65d2E56b7a710B1cd07d9DE04a4');
         console.log(criptoChirac);
 
         $("#button").click(function() {

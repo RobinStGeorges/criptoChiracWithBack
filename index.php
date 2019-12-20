@@ -48,13 +48,22 @@ if( isset($_SESSION['user_id']) ){
             <?php if($user['admin']):?>
                 an admin !
                 <!-- Mettre formulaire creation poll ici-->
-
+            <div class="container">
+                <h2><u>Les candidats</u></h2>
+                <h2 id="candidats"></h2>
+                <h1>Ajouter :</h1>
+                <label for="add" class="col-lg-2 control-label">Ajouter un candidats :</label>
+                <input id="add" type="text">
+                <button id="addButton">Ajouter</button>
+            </div>
 
 
             <?php else:?>
                 a voter!
                 <!-- Mettre formulaire lancer un vote ici-->
             <div class="container">
+                <h2><u>Les candidats</u></h2>
+                <h2 id="candidats"></h2>
                 <h1>Vote :</h1>
                 <label for="vote" class="col-lg-2 control-label">Donner  votre vote :</label>
                 <input id="vote" type="text">
@@ -124,6 +133,53 @@ if( isset($_SESSION['user_id']) ){
                 "constant": true,
                 "inputs": [
                     {
+                        "name": "_str",
+                        "type": "string"
+                    }
+                ],
+                "name": "_generateRandomUint",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "acc",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "getProposalNames",
+                "outputs": [
+                    {
+                        "name": "acc",
+                        "type": "string"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [
+                    {
                         "name": "",
                         "type": "uint256"
                     }
@@ -160,6 +216,20 @@ if( isset($_SESSION['user_id']) ){
             {
                 "constant": true,
                 "inputs": [],
+                "name": "sep",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
                 "name": "winnerName",
                 "outputs": [
                     {
@@ -186,7 +256,7 @@ if( isset($_SESSION['user_id']) ){
                 "type": "function"
             }
         ]);
-        var criptoChirac = VoteContract.at('0x7B346E517427f65d2E56b7a710B1cd07d9DE04a4');
+        var criptoChirac = VoteContract.at('0xE21b814604a0192E045aed8090e696b6919687d2');
         console.log(criptoChirac);
 
         $("#button").click(function() {
@@ -198,6 +268,27 @@ if( isset($_SESSION['user_id']) ){
                 else
                     console.log(error.code)
             })
+        });
+
+        $("#addButton").click(function() {
+            criptoChirac.addToProposals.sendTransaction($("#add").val(),{
+                from:  web3.eth.defaultAccount,
+            },function(error , result){
+                if(!error)
+                    console.log(result);
+                else
+                    console.log(error.code)
+            })
+        });
+
+        criptoChirac.getProposalNames(function(error, result){
+            if(!error)
+            {
+                $("#candidats").html(result);
+                console.log(result);
+            }
+            else
+                console.error(error);
         });
         </script>
 </body>

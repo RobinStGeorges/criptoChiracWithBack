@@ -39,22 +39,41 @@ if( isset($_SESSION['user_id']) ){
 
 	<div class="header">
 		<h1>CriptoChirac</h1>
-	</div>
+        <br /><br />You are successfully logged in as
+
+    </div>
 
 	<?php if( !empty($user) ): ?>
 
-		<br />Welcome <?= $user['email']; ?> 
-		<br /><br />You are successfully logged in as
-            <?php if($user['admin']):?>
+
+        <?php if($user['admin']):?>
                 an admin !
                 <!-- Mettre formulaire creation poll ici-->
+
             <div class="container">
-                <h2><u>Les candidats</u></h2>
-                <h2 id="candidats"></h2>
-                <h1>Ajouter :</h1>
-                <label for="add" class="col-lg-2 control-label">Ajouter un candidats :</label>
-                <input id="add" type="text">
-                <button id="addButton">Ajouter</button>
+
+                <fieldset>
+                    <legend>
+                        <b><u>Les candidats</u></b>
+                    </legend>
+
+                    <h2 id="candidats"></h2>
+                </fieldset>
+                <button id ="addForm" style = "">
+                    <b>Menu ajouter ▼</b>
+                </button>
+                <div id="showAddForm" style="display:none;">
+                    <fieldset>
+                    <label for="add" class="col-lg-2 control-label">Ajouter un candidats :</label>
+                    <input id="add" type="text">
+                    <button id="addButton">Valider</button>
+                    </fieldset>
+                </div>
+                <b>Clôturer les élections et récuperer le résultat</b>
+                <button id="close" style="color:red;">
+                    Clôture
+                </button>
+
             </div>
 
 
@@ -159,6 +178,29 @@ if( isset($_SESSION['user_id']) ){
                 "outputs": [],
                 "payable": false,
                 "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [],
+                "name": "closeVote",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "payable": true,
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [],
+                "name": "setIsVoteOpenToFalse",
+                "outputs": [],
+                "payable": true,
+                "stateMutability": "payable",
                 "type": "function"
             },
             {
@@ -276,7 +318,7 @@ if( isset($_SESSION['user_id']) ){
                 "type": "constructor"
             }
         ]);
-        var criptoChirac = VoteContract.at('0xc93F934e28578BD89C19A008E4f5aC0dfa5Fc0a3');
+        var criptoChirac = VoteContract.at('0xc109EEb159302ADF8B125b1BC8fc75Ef76c56c06');
         console.log(criptoChirac);
 
         //VOTE POUR UN CANDIDAT
@@ -291,6 +333,7 @@ if( isset($_SESSION['user_id']) ){
             })
         });
 
+        //ajoute un candidat (call to clockchain)
         $("#addButton").click(function() {
             ethereum.enable()
             criptoChirac.addToProposals.sendTransaction($("#add").val(),{
@@ -303,6 +346,7 @@ if( isset($_SESSION['user_id']) ){
             })
         });
 
+        //recupère la liste des candidats
         criptoChirac.getProposalNames(function(error, result){
             if(!error)
             {
@@ -315,6 +359,20 @@ if( isset($_SESSION['user_id']) ){
             else
                 console.error(error);
         });
+
+        //affiche le formulaire
+        $("#addForm").click(function() {
+            if(document.getElementById("showAddForm").style.display == "none") {
+
+                document.getElementById("showAddForm").style.display = 'block';
+            }
+            else
+            {
+                document.getElementById("showAddForm").style.display = 'none';
+            }
+        })
+
+
         </script>
 </body>
 </html>

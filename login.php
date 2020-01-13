@@ -36,19 +36,22 @@ endif;
 	<title>Login Below</title>
 	<link rel="stylesheet" type="text/css" href="assets/css/style.css">
 	<link href='http://fonts.googleapis.com/css?family=Comfortaa' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 
 <div class="header">
     <h1>CriptoChirac</h1>
 </div>
+<center>
 
 	<?php if(!empty($message)): ?>
 		<p><?= $message ?></p>
 	<?php endif; ?>
 
 	<h1>Login</h1>
-	<span>or <a href="register.php">register here</a></span>
+	<p><span>or <a href="register.php">register here</a></span></p>
 
 	<form action="login.php" method="POST">
 		
@@ -58,6 +61,6 @@ endif;
 		<input type="submit">
 
 	</form>
-
+</center>
 </body>
 </html>

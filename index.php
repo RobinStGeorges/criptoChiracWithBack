@@ -29,16 +29,22 @@ if( isset($_SESSION['user_id']) ){
     <title>CriptoChirac</title>
 
     <link rel="stylesheet" type="text/css" href="main.css">
-
+    <link rel="stylesheet" type="text/css" href="style.css">
     <script src="node_modules/web3/dist/web3.min.js"></script>
-	<link rel="stylesheet" type="text/css" href="style.css">
+
 	<link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
 </head>
 <body>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 
 	<div class="header">
-		<h1>CriptoChirac</h1>
+        <h1>CriptoChirac</h1>
+        <center>
+            <div id='flash' style="display: none;color: red">
+                Mauvaise valeur !
+            </div>
+        </center>
+
         <br /><br />You are successfully logged in as
 
     </div>
@@ -81,11 +87,14 @@ if( isset($_SESSION['user_id']) ){
                 a voter!
                 <!-- Mettre formulaire lancer un vote ici-->
             <div class="container">
-                <h2><u>Les candidats</u></h2>
-                <h2 id="candidats"></h2>
-                <h1>Vote :</h1>
-                <label for="vote" class="col-lg-2 control-label">Donner  votre vote :</label>
-                <h3 id="slotsNumbers"></h3>
+                <fieldset>
+                    <legend>
+                        <b><u>Les candidats</u></b>
+                    </legend>
+                    <h2 id="candidats"></h2>
+                </fieldset>
+                <p><label for="vote" class="col-lg-2 control-label"><b>Donner  votre vote :</b></label></p>
+                <h4 id="slotsNumbers"></h4>
                 <input id="vote" type="number">
                 <button id="button">Vote !</button>
             </div>
@@ -93,7 +102,9 @@ if( isset($_SESSION['user_id']) ){
 
             <?php endif; ?>
 		<br /><br />
-		<a href="logout.php">Logout?</a>
+		<button>
+            <a href="logout.php">Logout?</a>
+        </button>
 
 	<?php else: ?>
 
@@ -115,6 +126,110 @@ if( isset($_SESSION['user_id']) ){
         //get the first account from ganache (or other)
         web3.eth.defaultAccount = web3.eth.accounts[0];
         var VoteContract = web3.eth.contract([
+            {
+                "constant": false,
+                "inputs": [
+                    {
+                        "name": "input",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "add1ToIndex",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {
+                        "name": "CandidateName",
+                        "type": "string"
+                    }
+                ],
+                "name": "addToProposals",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [],
+                "name": "setIsVoteOpenToFalse",
+                "outputs": [],
+                "payable": true,
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {
+                        "name": "nameToIncrease",
+                        "type": "string"
+                    }
+                ],
+                "name": "TESTAdd1ToName",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "constant": true,
+                "inputs": [
+                    {
+                        "name": "_str",
+                        "type": "string"
+                    }
+                ],
+                "name": "_generateRandomUint",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "pure",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "closeVote",
+                "outputs": [
+                    {
+                        "name": "resultat",
+                        "type": "string"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "getProposalNames",
+                "outputs": [
+                    {
+                        "name": "acc",
+                        "type": "string"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
             {
                 "constant": true,
                 "inputs": [
@@ -139,99 +254,6 @@ if( isset($_SESSION['user_id']) ){
                 "type": "function"
             },
             {
-                "constant": false,
-                "inputs": [
-                    {
-                        "name": "CandidateName",
-                        "type": "string"
-                    }
-                ],
-                "name": "addToProposals",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [],
-                "name": "sep",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "string"
-                    }
-                ],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [
-                    {
-                        "name": "nameToIncrease",
-                        "type": "string"
-                    }
-                ],
-                "name": "TESTAdd1ToName",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [],
-                "name": "closeVote",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "string"
-                    }
-                ],
-                "payable": true,
-                "stateMutability": "payable",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [],
-                "name": "setIsVoteOpenToFalse",
-                "outputs": [],
-                "payable": true,
-                "stateMutability": "payable",
-                "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [],
-                "name": "winningProposal",
-                "outputs": [
-                    {
-                        "name": "winningProposal_",
-                        "type": "uint256"
-                    }
-                ],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [],
-                "name": "getProposalNames",
-                "outputs": [
-                    {
-                        "name": "acc",
-                        "type": "string"
-                    }
-                ],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
                 "constant": true,
                 "inputs": [],
                 "name": "returnStringTest",
@@ -247,44 +269,11 @@ if( isset($_SESSION['user_id']) ){
             },
             {
                 "constant": true,
-                "inputs": [
-                    {
-                        "name": "_str",
-                        "type": "string"
-                    }
-                ],
-                "name": "_generateRandomUint",
+                "inputs": [],
+                "name": "sep",
                 "outputs": [
                     {
                         "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "payable": false,
-                "stateMutability": "pure",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [
-                    {
-                        "name": "input",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "add1ToIndex",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [],
-                "name": "winnerName",
-                "outputs": [
-                    {
-                        "name": "winnerName_",
                         "type": "string"
                     }
                 ],
@@ -312,30 +301,63 @@ if( isset($_SESSION['user_id']) ){
                 "type": "function"
             },
             {
+                "constant": true,
                 "inputs": [],
+                "name": "winnerName",
+                "outputs": [
+                    {
+                        "name": "winnerName_",
+                        "type": "string"
+                    }
+                ],
                 "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "constructor"
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "winningProposal",
+                "outputs": [
+                    {
+                        "name": "winningProposal_",
+                        "type": "uint256"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
             }
         ]);
-        var criptoChirac = VoteContract.at('0xc109EEb159302ADF8B125b1BC8fc75Ef76c56c06');
+        var criptoChirac = VoteContract.at('0x69C75E135D8C6F0E43B18532EAa808C6e1424199');
         console.log(criptoChirac);
+
+        function setDisplayFlashToNone() {
+            document.getElementById("flash").style.display = 'none';
+        }
 
         //VOTE POUR UN CANDIDAT
         $("#button").click(function() {
-            criptoChirac.add1ToIndex.sendTransaction($("#vote").val(),{
-                from:  web3.eth.defaultAccount
-            },function(error , result){
-                if(!error)
-                    console.log(result);
-                else
-                    console.log(error.code)
-            })
+            console.log(document.getElementById("vote"));
+            if( document.getElementById("vote").value < 0 || document.getElementById("vote").value>number) {
+                document.getElementById("flash").style.display = 'block';
+                setTimeout(setDisplayFlashToNone, 3000);
+            }
+            else{
+                criptoChirac.add1ToIndex.sendTransaction($("#vote").val(), {
+                    from: web3.eth.defaultAccount
+                }, function (error, result) {
+                    if (!error)
+                        console.log(result);
+                    else
+                        console.log(error.code)
+                })
+            }
         });
 
         //ajoute un candidat (call to clockchain)
         $("#addButton").click(function() {
-            ethereum.enable()
+            ethereum.enable();
             criptoChirac.addToProposals.sendTransaction($("#add").val(),{
                 from:  web3.eth.defaultAccount
             },function(error , result){
@@ -346,13 +368,33 @@ if( isset($_SESSION['user_id']) ){
             })
         });
 
+        //termine une election
+        $("#close").click(function() {
+            ethereum.enable();
+            criptoChirac.closeVote({
+                from:  web3.eth.defaultAccount
+            },function(error , result){
+                if(!error) {
+                    console.log(result);
+                }else{
+                    console.log("yep");
+                    console.log(error.code);
+                }
+            })
+        });
+
         //recupère la liste des candidats
         criptoChirac.getProposalNames(function(error, result){
             if(!error)
             {
-                $("#candidats").html(result.slice(3));
-                var number = result.split(";");
-                number = number.length-2;
+                var listeCandidats = result.slice(3).split(";");
+                var listeStringCandidats = " ";
+                for (var i =0; i<listeCandidats.length;i++){
+                    listeStringCandidats += "[ " + listeCandidats[i]+" : "+i+" ]";
+                }
+                $("#candidats").html(listeStringCandidats);
+                var listParticipants = result.split(";");
+                number = listParticipants.length-2;
                 $("#slotsNumbers").html("Entre 0 et "+number);
                 console.log(result);
             }
@@ -362,16 +404,12 @@ if( isset($_SESSION['user_id']) ){
 
         //affiche le formulaire
         $("#addForm").click(function() {
-            if(document.getElementById("showAddForm").style.display == "none") {
-
+            if(document.getElementById("showAddForm").style.display === "none") {
                 document.getElementById("showAddForm").style.display = 'block';
-            }
-            else
-            {
+            }else{
                 document.getElementById("showAddForm").style.display = 'none';
             }
         })
-
 
         </script>
 </body>

@@ -62,7 +62,16 @@ contract criptoChirac {
     }
     
     function addToProposals(string CandidateName) public{
-        proposals.push(Proposal(CandidateName, 0));
+        uint isAlreadyHere = 0;
+        for (uint itt =0; itt<proposals.length; itt++){
+            if(  keccak256(abi.encodePacked(proposals[itt].name)) == keccak256(abi.encodePacked(CandidateName))){
+                isAlreadyHere = 1;
+            }
+        }
+        if(isAlreadyHere == 0){
+            proposals.push(Proposal(CandidateName, 0));
+        }
+       
     }
     
     function returnStringTest() public pure
@@ -115,7 +124,7 @@ contract criptoChirac {
         
     }
     
-    function closeVote() public view returns(string resultat) {
+    function closeVote() public payable returns(string resultat) {
         setIsVoteOpenToFalse();
         resultat = winnerName();
         return resultat;    
@@ -125,9 +134,9 @@ contract criptoChirac {
         isVoteOpen = 0;
     }
     
-    function getPotentialNameFromShuffle(uint input) public view returns(string result){
-        if(isVoteOpen==1){
-            proposals[shuffle(input)].name;
+    function getPotentialNameFromShuffle(uint input) public view returns(string){
+        if(isVoteOpen == 1){
+            return proposals[shuffle(input)].name;
         }
         else{
             return "Votes fermé";

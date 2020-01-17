@@ -6,6 +6,8 @@ contract criptoChirac {
     using strings for *;
     string public sep = " ; ";
     uint isVoteOpen = 1;
+    uint lastVoteResult = 0;
+    uint aPaye =0;
   
     //candidature
     struct Proposal {
@@ -13,6 +15,26 @@ contract criptoChirac {
         uint voteCount; // nombre de votes cumulés
     }
     
+    struct User {
+        bool voted;
+    
+        bool set; // This boolean is used to differentiate between unset and zero struct values
+    }
+    
+    mapping(address => User) public users;
+    
+    /*
+    struct Voter {
+        string name;
+        uint lastVoted;
+        uint hasValidateVote;
+        uint finalVote;
+    }
+    
+    //tableau de voteurs
+     Voter[] public voters;
+    */
+
 
     //tableau de candidatures
      Proposal[] public proposals;
@@ -28,6 +50,17 @@ contract criptoChirac {
         
     }
     
+    function createUser(address _userAddress) public {
+        User storage user = users[_userAddress];
+        // Check that the user did not already exist:
+        require(!user.set);
+        //Store the user
+        users[_userAddress] = User({
+            voted : false,
+            set: true
+        });
+    }
+    
     function winningProposal() public view
             returns (uint winningProposal_)
     {
@@ -39,6 +72,10 @@ contract criptoChirac {
             }
         }
     }
+    
+    function addAPaye() public payable{
+        aPaye++;
+    }
 
 
     function winnerName() public view
@@ -47,12 +84,18 @@ contract criptoChirac {
         winnerName_ = proposals[winningProposal()].name;
     }
     
-    function TESTAdd1ToName(string nameToIncrease) public{
+    function Add1ToName(string nameToIncrease) public returns (uint){
+        createUser(msg.sender);
+        User storage sender = users[msg.sender];
+        if (sender.voted) return;
         for (uint p = 0; p < proposals.length; p++) {
             if (keccak256(abi.encodePacked(proposals[p].name)) == keccak256(abi.encodePacked(nameToIncrease)) ) {
                 proposals[p].voteCount += 1;
+                sender.voted = true;
+                return 1;
             }
         }
+        return 0;
     }
     
     function add1ToIndex(uint input) public{
@@ -134,15 +177,13 @@ contract criptoChirac {
         isVoteOpen = 0;
     }
     
-    function getPotentialNameFromShuffle(uint input) public view returns(string){
-        if(isVoteOpen == 1){
-            return proposals[shuffle(input)].name;
-        }
-        else{
-            return "Votes fermé";
+    function getNumberVoteByName(string name)public view returns (uint){
+        for(uint itter=0 ; itter<proposals.length;itter++){
+            if( keccak256(abi.encodePacked(proposals[itter].name)) == keccak256(abi.encodePacked(name)) ){
+                return proposals[itter].voteCount;
+            }
         }
     }
 
-    
     
 }

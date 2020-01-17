@@ -96,11 +96,10 @@ if( isset($_SESSION['user_id']) ){
                 </fieldset>
                 <p><label for="vote" class="col-lg-2 control-label"><b>Donner  votre vote :</b></label></p>
                 <h4 id="slotsNumbers"></h4>
-                <input id="vote" type="number">
                 <button id="button">Vote !</button>
                 <div id="aVote" style="display: none">
-                    Résultat :
-                    <div id="tempResult"></div>
+                    Voulez-vous valider le vote pour
+                    <div id="tempResult" style="font-weight: bold"></div>
                     <button id="validateVote">Valider</button>
                 </div>
             </div>
@@ -150,6 +149,34 @@ if( isset($_SESSION['user_id']) ){
                 "constant": false,
                 "inputs": [
                     {
+                        "name": "nameToIncrease",
+                        "type": "string"
+                    }
+                ],
+                "name": "Add1ToName",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [],
+                "name": "addAPaye",
+                "outputs": [],
+                "payable": true,
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {
                         "name": "CandidateName",
                         "type": "string"
                     }
@@ -176,25 +203,25 @@ if( isset($_SESSION['user_id']) ){
             },
             {
                 "constant": false,
+                "inputs": [
+                    {
+                        "name": "_userAddress",
+                        "type": "address"
+                    }
+                ],
+                "name": "createUser",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
                 "inputs": [],
                 "name": "setIsVoteOpenToFalse",
                 "outputs": [],
                 "payable": true,
                 "stateMutability": "payable",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [
-                    {
-                        "name": "nameToIncrease",
-                        "type": "string"
-                    }
-                ],
-                "name": "TESTAdd1ToName",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -226,15 +253,15 @@ if( isset($_SESSION['user_id']) ){
                 "constant": true,
                 "inputs": [
                     {
-                        "name": "input",
-                        "type": "uint256"
+                        "name": "name",
+                        "type": "string"
                     }
                 ],
-                "name": "getPotentialNameFromShuffle",
+                "name": "getNumberVoteByName",
                 "outputs": [
                     {
                         "name": "",
-                        "type": "string"
+                        "type": "uint256"
                     }
                 ],
                 "payable": false,
@@ -327,6 +354,29 @@ if( isset($_SESSION['user_id']) ){
             },
             {
                 "constant": true,
+                "inputs": [
+                    {
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "users",
+                "outputs": [
+                    {
+                        "name": "voted",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "set",
+                        "type": "bool"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
                 "inputs": [],
                 "name": "winnerName",
                 "outputs": [
@@ -354,35 +404,51 @@ if( isset($_SESSION['user_id']) ){
                 "type": "function"
             }
         ]);
-        var criptoChirac = VoteContract.at('0x68403138827b065f0776F12D62D1C43904b6F3D2');
+        var criptoChirac = VoteContract.at('0x5Db7556beE24B0680ba91dC35282eBBa5BF690BB');
         console.log(criptoChirac);
 
         function setDisplayFlashToNone() {
             document.getElementById("flash").style.display = 'none';
         }
 
-        //VOTE POUR UN CANDIDAT
+        //Avoir UN CANDIDAT
         $("#button").click(function() {
             ethereum.enable();
-            console.log(document.getElementById("vote"));
-            if( document.getElementById("vote").value < 0 || document.getElementById("vote").value>number) {
-                document.getElementById("flash").style.display = 'block';
-                setTimeout(setDisplayFlashToNone, 3000);
-            }
-            else{
-                criptoChirac.getPotentialNameFromShuffle.sendTransaction($("#vote").val(), {
-                    from: web3.eth.defaultAccount
-                }, function (error, result) {
-                    if (!error){
+
+                criptoChirac.addAPaye({
+                    from:  web3.eth.defaultAccount
+                },function(error , result){
+                    if(!error){
+                        console.log("Vous avez un nouveau candidat possible!");
+                        var min = 0;
+                        var max = window.listeCandidats.length;
+                        window.tempCandIndex = Math.floor(Math.random() * (+max - +min)) + +min;
                         document.getElementById("aVote").style.display="block";
-                        document.getElementById("tempResult").innerHTML=result;
-                        console.log(result);
+                        document.getElementById("tempResult").innerHTML=window.listeCandidats[window.tempCandIndex];
                     }
                     else{
-                        console.log(error.code)
+                        console.log("votre tentative de vote n'a pas aboutie");
                     }
-                })
-            }
+                });
+
+
+        });
+
+        // valider le vote
+        $("#validateVote").click(function() {
+            ethereum.enable();
+            var valToSend = document.getElementById("tempResult").innerHTML.trim();
+            console.log(document.getElementById("tempResult").innerHTML);
+            criptoChirac.Add1ToName.sendTransaction(valToSend,{
+                from:  web3.eth.defaultAccount
+            },function(error , result){
+                if(!error && result === 1 ){
+
+                }
+                else{
+                    console.log("votre tentative de vote n'a pas aboutie");
+                }
+            });
         });
 
         //ajoute un candidat (call to clockchain)
@@ -414,22 +480,26 @@ if( isset($_SESSION['user_id']) ){
             })
         });
 
+
+
         //recupère la liste des candidats
         criptoChirac.getProposalNames(function(error, result){
             if(!error)
             {
-                var listeCandidats = result.slice(3).split(";");
+                window.listeCandidats = result.slice(3).split(";");
                 var listeStringCandidats = " ";
                 if(listeCandidats[0] !== "") {
                     for (var i = 0; i < listeCandidats.length; i++) {
-                        listeStringCandidats += "[ " + listeCandidats[i] + " : " + i + " ]";
+                        listeStringCandidats += "[ " + listeCandidats[i] + " ]";
                     }
                 }
                 $("#candidats").html(listeStringCandidats);
+                /*
                 var listParticipants = result.split(";");
                 number = listParticipants.length-2;
                 $("#slotsNumbers").html("Entre 0 et "+number);
                 console.log(result);
+                */
             }
             else
                 console.error(error);

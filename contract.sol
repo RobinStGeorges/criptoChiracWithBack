@@ -76,26 +76,37 @@ contract criptoChirac {
     function addAPaye() public payable{
         aPaye++;
     }
+    
+    function getAVote() public view returns(bool){
+        User storage sender = users[msg.sender];
+        return sender.voted;
+    }
+    
+    function isClosed() public view returns(bool){
+        if(isVoteOpen == 0){
+            return true;
+        }
+    }
 
 
-    function winnerName() public view
-            returns (string winnerName_)
+    function winnerName() public view returns (string winnerName_)
     {
         winnerName_ = proposals[winningProposal()].name;
     }
     
-    function Add1ToName(string nameToIncrease) public returns (uint){
+    function Add1ToName(string nameToIncrease) public returns(bool){
         createUser(msg.sender);
         User storage sender = users[msg.sender];
-        if (sender.voted) return;
-        for (uint p = 0; p < proposals.length; p++) {
-            if (keccak256(abi.encodePacked(proposals[p].name)) == keccak256(abi.encodePacked(nameToIncrease)) ) {
-                proposals[p].voteCount += 1;
-                sender.voted = true;
-                return 1;
+        if (sender.voted == false){
+            for (uint p = 0; p < proposals.length; p++) {
+                if (keccak256(abi.encodePacked(proposals[p].name)) == keccak256(abi.encodePacked(nameToIncrease)) ) {
+                    proposals[p].voteCount += 1;
+                    sender.voted = true;
+                    return(sender.voted);
+                }
             }
         }
-        return 0;
+        return(sender.voted);
     }
     
     function add1ToIndex(uint input) public{

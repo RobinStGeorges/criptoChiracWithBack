@@ -110,6 +110,8 @@ if( isset($_SESSION['user_id']) ){
                 </div>
                 <div id="cantVote" style="display: none;">
                 </div>
+                <div id="resultVote"></div>
+                <div id="isOpen"></div>
             </div>
 
 
@@ -482,6 +484,7 @@ if( isset($_SESSION['user_id']) ){
                     if(!error) {
                         document.getElementById("isOpen").style.display='none';
                         document.getElementById("resultVote").innerHTML="Le.a président.e est : <b>"+result+"</b>";
+                        document.getElementById("resultVoteUser").innerHTML="Le.a président.e est : <b>"+result+"</b>";
                         console.log(result);
                     }else{
                         console.log("error getting is closed");

@@ -9,7 +9,7 @@ if( isset($_SESSION['user_id']) ){
 require 'database.php';
 
 if(!empty($_POST['email']) && !empty($_POST['password'])):
-	
+    //get the logged in user's info
 	$records = $conn->prepare('SELECT id,email,password FROM users WHERE email = :email');
 	$records->bindParam(':email', $_POST['email']);
 	$records->execute();
@@ -38,6 +38,7 @@ endif;
 	<link href='http://fonts.googleapis.com/css?family=Comfortaa' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="main.css">
     <link rel="stylesheet" type="text/css" href="style.css">
+    <con
 </head>
 <body>
 

@@ -5,7 +5,7 @@ session_start();
 require 'database.php';
 
 if( isset($_SESSION['user_id']) ){
-
+    //get the logged in user's info
 	$records = $conn->prepare('SELECT id,email,password, admin FROM users WHERE id = :id');
 	$records->bindParam(':id', $_SESSION['user_id']);
 	$records->execute();
@@ -39,6 +39,8 @@ if( isset($_SESSION['user_id']) ){
 
 	<div class="header">
         <h1>CriptoChirac</h1>
+
+        <!-- Div flash to display error messages -->
         <center>
             <div id='flash' style="display: none;color: red">
                 Mauvaise valeur !
@@ -117,6 +119,7 @@ if( isset($_SESSION['user_id']) ){
             <a href="logout.php">Logout?</a>
         </button>
 
+    <!-- If not logged -->
 	<?php else: ?>
 
 		<h1>Please Login or Register</h1>
@@ -126,6 +129,10 @@ if( isset($_SESSION['user_id']) ){
 	<?php endif; ?>
     <script>
 
+        /**
+         * create the web3 object listening on port 7545,
+         * can change but most stable for now as 8545 interfeer with xampp
+         * */
         if (typeof web3 !== 'undefined') {
             web3 = new Web3(web3.currentProvider);
         } else {
@@ -133,9 +140,14 @@ if( isset($_SESSION['user_id']) ){
             web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
         }
 
-        console.log(web3);
-        //get the first account from ganache (or other)
+        /**
+         * get the first account from ganache (
+         **/
         web3.eth.defaultAccount = web3.eth.accounts[0];
+
+        /**
+         *  Create the contract with remix's ABI
+         **/
         var VoteContract = web3.eth.contract([
             {
                 "constant": true,
@@ -289,20 +301,6 @@ if( isset($_SESSION['user_id']) ){
             {
                 "constant": true,
                 "inputs": [],
-                "name": "getAVote",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "bool"
-                    }
-                ],
-                "payable": false,
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [],
                 "name": "returnStringTest",
                 "outputs": [
                     {
@@ -312,6 +310,20 @@ if( isset($_SESSION['user_id']) ){
                 ],
                 "payable": false,
                 "stateMutability": "pure",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "hasUserVoted",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
                 "type": "function"
             },
             {
@@ -438,19 +450,30 @@ if( isset($_SESSION['user_id']) ){
                 "type": "constructor"
             }
         ]);
-        var criptoChirac = VoteContract.at('0x697Cbb7E1B3f799BF2DCad58dDC55510A7e73F57');
-        console.log(criptoChirac);
 
-        criptoChirac.getAVote(function (error, result) {
+        /**
+         * link to the contract in blockchain
+         **/
+        var criptoChirac = VoteContract.at('0x65Cb0416a304DdD94d128bE98BeDfCCFcc12d95E');
+        //console.log(criptoChirac);
+
+        /**
+         *Check if the user has already voted
+         * if so, the user is blocked from voting
+         * and a text is displayed
+         */
+        criptoChirac.hasUserVoted(function (error, result) {
             if(result === true){
-                console.log("can vote ?");
-                console.log(result);
                 document.getElementById("canVote").style.display='none';
                 document.getElementById("canVote").innerHTML="Vous avez déjà voté !";
                 document.getElementById("canVote").style.display='block';
             }
         });
 
+        /**
+         * Check if the vote has been closed by an admin
+         * if so, a text is display with the winner's name
+         */
         criptoChirac.isClosed(function (error, result) {
             if(result === true){
                 criptoChirac.winnerName({
@@ -461,18 +484,24 @@ if( isset($_SESSION['user_id']) ){
                         document.getElementById("resultVote").innerHTML="Le.a président.e est : <b>"+result+"</b>";
                         console.log(result);
                     }else{
-                        console.log("could not close");
+                        console.log("error getting is closed");
                         console.log(error.code);
                     }
                 })
             }
         });
 
+        /**
+         * hide the flash message div
+         */
         function setDisplayFlashToNone() {
             document.getElementById("flash").style.display = 'none';
         }
 
-        //Avoir UN CANDIDAT
+        /**
+         *send a random candidat name from the list
+         * inserted by the admin
+         */
         $("#button").click(function() {
             ethereum.enable();
 
@@ -480,7 +509,6 @@ if( isset($_SESSION['user_id']) ){
                     from:  web3.eth.defaultAccount
                 },function(error , result){
                     if(!error){
-                        console.log("Vous avez un nouveau candidat possible!");
                         var min = 0;
                         var max = window.listeCandidats.length;
                         window.tempCandIndex = Math.floor(Math.random() * (+max - +min)) + +min;
@@ -495,16 +523,18 @@ if( isset($_SESSION['user_id']) ){
 
         });
 
-        // valider le vote
+        /**
+         * Send the previously generated name to the blockchain
+         * incrementing it's score
+         * it then log out the user
+         * preventing him to send another request
+         */
         $("#validateVote").click(function() {
             ethereum.enable();
             var valToSend = document.getElementById("tempResult").innerHTML.trim();
-            console.log(document.getElementById("tempResult").innerHTML);
             criptoChirac.Add1ToName.sendTransaction(valToSend,{
                 from:  web3.eth.defaultAccount
             },function(error , result){
-                console.log("result :");
-                console.log(result);
                 if(!error){
                     var urlLogout= "http://localhost/quickBack/login.php";
                     window.location = urlLogout;
@@ -515,7 +545,9 @@ if( isset($_SESSION['user_id']) ){
             });
         });
 
-        //ajoute un candidat (call to clockchain)
+        /**
+         * add a candidat name to the list [admin]
+         */
         $("#addButton").click(function() {
             ethereum.enable();
             criptoChirac.addToProposals.sendTransaction($("#add").val(),{
@@ -529,14 +561,15 @@ if( isset($_SESSION['user_id']) ){
         });
 
 
-        //termine une election
+        /**
+         * close the current election [admin]
+         */
         $("#close").click(function() {
             ethereum.enable();
             criptoChirac.closeVote({
                 from:  web3.eth.defaultAccount
             },function(error , result){
                 if(!error) {
-
                     console.log(result);
                 }else{
                     console.log("could not close");
@@ -545,10 +578,10 @@ if( isset($_SESSION['user_id']) ){
             })
         });
 
-
-
-
-        //recupère la liste des candidats
+        /**
+         * get the added name from the blockchain,
+         * and display it in the div
+         */
         criptoChirac.getProposalNames(function(error, result){
             if(!error)
             {
@@ -560,18 +593,14 @@ if( isset($_SESSION['user_id']) ){
                     }
                 }
                 $("#candidats").html(listeStringCandidats);
-                /*
-                var listParticipants = result.split(";");
-                number = listParticipants.length-2;
-                $("#slotsNumbers").html("Entre 0 et "+number);
-                console.log(result);
-                */
             }
             else
                 console.error(error);
         });
 
-        //affiche le formulaire
+        /**
+         * display the form to add a candidat
+         */
         $("#addForm").click(function() {
             if(document.getElementById("showAddForm").style.display === "none") {
                 document.getElementById("showAddForm").style.display = 'block';

@@ -77,7 +77,7 @@ contract criptoChirac {
         aPaye++;
     }
     
-    function getAVote() public view returns(bool){
+    function hasUserVoted() public view returns(bool){
         User storage sender = users[msg.sender];
         return sender.voted;
     }

@@ -3,7 +3,7 @@
 session_start();
 
 if( isset($_SESSION['user_id']) ){
-	header("Location: http://localhost/quickBack/index.php");
+	header("Location: http://localhost/criptoChiracWithBack/");
 }
 
 require 'database.php';

@@ -6,4 +6,4 @@ session_unset();
 
 session_destroy();
 
-header("Location: http://localhost/quickBack/login.php");
+header("Location: http://localhost/criptoChiracWithBack/");

@@ -6,7 +6,7 @@ require 'database.php';
 
 if( isset($_SESSION['user_id']) ){
     //get the logged in user's info
-	$records = $conn->prepare('SELECT id,email,password, admin FROM users WHERE id = :id');
+	$records = $conn->prepare('SELECT id,email,password, admin, count, lastNameGotten  FROM users WHERE id = :id');
 	$records->bindParam(':id', $_SESSION['user_id']);
 	$records->execute();
 	$results = $records->fetch(PDO::FETCH_ASSOC);
@@ -15,6 +15,9 @@ if( isset($_SESSION['user_id']) ){
 
 	if( count($results) > 0){
 		$user = $results;
+		$count = $user['count'];
+		$name = $user['email'];
+
 	}
 
 }
@@ -31,11 +34,12 @@ if( isset($_SESSION['user_id']) ){
     <link rel="stylesheet" type="text/css" href="main.css">
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="node_modules/web3/dist/web3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
 	<link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
 </head>
 <body>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script> -->
 
 	<div class="header">
         <h1>CriptoChirac</h1>
@@ -51,8 +55,7 @@ if( isset($_SESSION['user_id']) ){
 
     </div>
 
-	<?php if( !empty($user) ): ?>
-
+	<?php if( !empty($user) ):?>
 
         <?php if($user['admin']):?>
                 an admin !
@@ -98,13 +101,36 @@ if( isset($_SESSION['user_id']) ){
                     </legend>
                     <h2 id="candidats"></h2>
                 </fieldset>
-                <div id="canVote" style="display: block;">
+                <b id="canVote" style="display: block;">
                     <p><label for="vote" class="col-lg-2 control-label"><b>Donner  votre vote :</b></label></p>
                     <h4 id="slotsNumbers"></h4>
-                    <button id="button">Vote !</button>
+                    <?php
+                    if($count<5){
+                    ?>
+                        <div id="avoteDeux" style="display: block">
+                        <button id="button">Vote !</button>
+
+                    <?php
+                        if($user['lastNameGotten'] != ''){
+                            ?>
+                            Voulez-vous valider le vote pour
+                                <b><?php echo $user['lastNameGotten'] ?></b>
+                            <button id="validateVoteLNG2">Valider</button>
+                            </div>
+                            <?php
+                        }
+                    }
+                    else{
+                    ?> Vous avez déjà voté 4 fois ! Vous devez valider <b></b><?php echo $user['lastNameGotten']?></b> !
+                        <button id="validateVoteLNG">Valider</button>
+                        <?php
+                    }
+                    ?>
                     <div id="aVote" style="display: none">
                         Voulez-vous valider le vote pour
-                        <div id="tempResult" style="font-weight: bold"></div>
+                        <div id="tempResult" style="font-weight: bold">
+                            <?php echo $user['lastNameGotten'] ?>
+                        </div>
                         <button id="validateVote">Valider</button>
                     </div>
                 </div>
@@ -139,7 +165,7 @@ if( isset($_SESSION['user_id']) ){
             web3 = new Web3(web3.currentProvider);
         } else {
             // set the provider you want from Web3.providers
-            web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
+            web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
         }
 
         /**
@@ -456,7 +482,7 @@ if( isset($_SESSION['user_id']) ){
         /**
          * link to the contract in blockchain
          **/
-        var criptoChirac = VoteContract.at('0x65Cb0416a304DdD94d128bE98BeDfCCFcc12d95E');
+        var criptoChirac = VoteContract.at('0x142Ca82BA0487b257e0F23BEC78123e8A42E1A2c');
         //console.log(criptoChirac);
 
         /**
@@ -509,7 +535,8 @@ if( isset($_SESSION['user_id']) ){
             ethereum.enable();
 
                 criptoChirac.addAPaye({
-                    from:  web3.eth.defaultAccount
+                    from:  web3.eth.defaultAccount,
+                    gasPrice: '20000000000'
                 },function(error , result){
                     if(!error){
                         var min = 0;
@@ -517,6 +544,14 @@ if( isset($_SESSION['user_id']) ){
                         window.tempCandIndex = Math.floor(Math.random() * (+max - +min)) + +min;
                         document.getElementById("aVote").style.display="block";
                         document.getElementById("tempResult").innerHTML=window.listeCandidats[window.tempCandIndex];
+                        $.ajax({
+                            dataType: "html",
+                            type: "POST",
+                            url: 'addOneToUser.php',
+                            data:'Name='+ '<?php echo $name ?> &lastNameGotten='+window.listeCandidats[window.tempCandIndex],
+                        });
+                        setTimeout(suiteTraitement, 3500)
+
                     }
                     else{
                         console.log("votre tentative de vote n'a pas aboutie");
@@ -524,7 +559,18 @@ if( isset($_SESSION['user_id']) ){
                 });
 
 
+
         });
+
+        function suiteTraitement()
+        {
+            location.reload()
+        }
+
+        function suiteTraitement2()
+        {
+            window.location = "http://localhost/criptoChiracWithBack/";
+        }
 
         /**
          * Send the previously generated name to the blockchain
@@ -536,11 +582,59 @@ if( isset($_SESSION['user_id']) ){
             ethereum.enable();
             var valToSend = document.getElementById("tempResult").innerHTML.trim();
             criptoChirac.Add1ToName.sendTransaction(valToSend,{
-                from:  web3.eth.defaultAccount
+                from:  web3.eth.defaultAccount,
+                gasPrice :'100000000000'
             },function(error , result){
                 if(!error){
-                    var urlLogout= "http://localhost/quickBack/login.php";
-                    window.location = urlLogout;
+                    setTimeout(suiteTraitement2, 3500)
+                }
+                else{
+                    console.log("votre tentative de vote n'a pas aboutie");
+                }
+            });
+        });
+
+
+        /**
+         * Send the previously generated name to the blockchain
+         * incrementing it's score
+         * it then log out the user
+         * preventing him to send another request
+         */
+        $("#validateVoteLNG").click(function() {
+            ethereum.enable();
+            var valToSend = '<?php echo $user['lastNameGotten']?>'.trim();
+            console.log(valToSend);
+            criptoChirac.Add1ToName.sendTransaction(valToSend,{
+                from:  web3.eth.defaultAccount,
+                gasPrice :'100000000000'
+            },function(error , result){
+                if(!error){
+                    window.location = "http://localhost/criptoChiracWithBack/";
+                    setTimeout(suiteTraitement2, 3500)
+                }
+                else{
+                    console.log("votre tentative de vote n'a pas aboutie");
+                }
+            });
+        });
+
+        /**
+         * Send the previously generated name to the blockchain
+         * incrementing it's score
+         * it then log out the user
+         * preventing him to send another request
+         */
+        $("#validateVoteLNG2").click(function() {
+            ethereum.enable();
+            var valToSend = '<?php echo $user['lastNameGotten']?>'.trim();
+            criptoChirac.Add1ToName.sendTransaction(valToSend,{
+                from:  web3.eth.defaultAccount,
+                gasPrice :'100000000000'
+            },function(error , result){
+                if(!error){
+                    window.location = "http://localhost/criptoChiracWithBack/";
+                    setTimeout(suiteTraitement2, 3500)
                 }
                 else{
                     console.log("votre tentative de vote n'a pas aboutie");

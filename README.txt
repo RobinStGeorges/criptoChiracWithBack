@@ -12,6 +12,7 @@ Copier le contenu de contract.sol dans remix, compiler, et déployer sur web3 po
 Lancer ganache sur le port 7545
 Connecter metamask rpc personnalisé à l'adresse : http://127.0.0.1:7545/
 Vérifier dans index.php que l'objet web3 se s'initialise bien sur 7545
+creer la base de donnée selon les paramètres de database.php
 
 Un compte admin peux :
   -ajouter des candidats à une élection
